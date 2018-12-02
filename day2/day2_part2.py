@@ -6,7 +6,7 @@ has_three_match = lambda counter: any(c == 3 for c in counter.values())
 
 def get_valid_ids():
     with open('data.txt') as f:
-        for (box_id,) in map(str.rsplit, f):
+        for box_id in map(str.rstrip, f):
             counter = Counter(box_id)
 
             if has_two_match(counter) or has_three_match(counter):
