@@ -8,7 +8,7 @@ def remove_negating_units(text):
     for c in set(text):
         text = text.replace(c.upper() + c.lower(), '').replace(c.lower() + c.upper(), '')
 
-    return inital_len - len(text), text
+    return inital_len != len(text), text
 
 
 while True:
