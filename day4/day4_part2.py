@@ -14,11 +14,12 @@ FILE = 'data.txt'
 def parse(line):
     *args, text = re_log.search(line).groups()
     year, month, day, hour, minute = map(int, args)
-    state = guard_id = None
 
     m = re.search(r'Guard #(\d+)', text)
     if m:
         guard_id = int(m[1])
+    else:
+        guard_id = None
 
     if text.endswith('begins shift'):
         state = BEGIN_SHIFT
