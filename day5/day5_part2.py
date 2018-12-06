@@ -5,16 +5,17 @@ with open('data.txt') as f:
 def remove_negating_units(text):
     inital_len = len(text)
 
-    for c in set(text):
-        text = text.replace(c.upper() + c.lower(), '').replace(c.lower() + c.upper(), '')
+    for lower, upper in zip(lower_chars, upper_chars):
+        text = text.replace(upper + lower, '').replace(lower + upper, '')
 
     return inital_len != len(text), text
 
 
 min_len = len(data)
+lower_chars, upper_chars = sorted(set(data.lower())), sorted(set(data.upper()))
 
-for char in set(data.lower()):
-    datacopy = data.replace(char.lower(), '').replace(char.upper(), '')
+for char in lower_chars:
+    datacopy = data.replace(char, '').replace(char.upper(), '')
 
     while True:
         changed, datacopy = remove_negating_units(datacopy)
