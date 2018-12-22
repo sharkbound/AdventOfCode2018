@@ -1,6 +1,6 @@
 import numpy as np
 
-PLOT_GRID = False
+PLOT_GRID = 1
 
 WIDTH = 354
 HEIGHT = 359
@@ -27,23 +27,34 @@ DEFAULT_POINT_ID = 0, 0, 0
 
 with open('data.txt') as f:
     points = [(*map(int, line.split(',')), i) for i, line in enumerate(f, 1)]
+    non_infinite_points = set(id for _, _, id in points)
 
 for i, p in enumerate(points, 1):
     grid[p[:-1]] = i
     seen_points.add(p[:-1])
 
 for i, _ in np.ndenumerate(grid):
-    if i in seen_points:
-        if PLOT_GRID:
-            grid[i] = 255
-        continue
+    if PLOT_GRID and i in seen_points:
+        grid[i] = 255
 
-    grid[i] = (closest_point(i) or DEFAULT_POINT_ID)[2]
+    closest_point_id = closest_point(i)
+
+    if closest_point_id and (not i[0] or i[0] == WIDTH - 1 or not i[1] or i[1] == HEIGHT - 1):
+        non_infinite_points.discard(closest_point_id[2])
+        # print(f'discarding: {closest_point_id[2]}, '
+        #       f'W:{WIDTH - 1}, H:{HEIGHT - 1}, '
+        #       f'X: {i[0]}, Y: {i[1]}')
+
+    grid[i] = (closest_point_id or DEFAULT_POINT_ID)[2]
 
 if PLOT_GRID:
     import matplotlib.pyplot as plt
 
+    for p in points:
+        if p[2] not in non_infinite_points:
+            grid[np.where(grid == p[2])] = 0
+
     plt.imshow(grid)
     plt.show()
 
-print(max(np.count_nonzero(grid[np.where(grid == point_id)]) - 1 for _, _, point_id in points))
+print(max(np.count_nonzero(grid[np.where(grid == point_id)]) for point_id in non_infinite_points))
