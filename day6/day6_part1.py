@@ -1,11 +1,15 @@
 import numpy as np
 
-PLOT_GRID = 1
+PLOT_GRID = True
 
 WIDTH = 354
 HEIGHT = 359
 
 grid = np.zeros((WIDTH, HEIGHT), dtype=np.int)
+
+
+def point_area(point_id):
+    return np.count_nonzero(grid[np.where(grid == point_id)])
 
 
 def manhattan_distance(p1, p2):
@@ -57,4 +61,4 @@ if PLOT_GRID:
     plt.imshow(grid)
     plt.show()
 
-print(max(np.count_nonzero(grid[np.where(grid == point_id)]) for point_id in non_infinite_points))
+print(max(map(point_area, non_infinite_points)))
