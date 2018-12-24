@@ -1,8 +1,7 @@
+import re
 from dataclasses import dataclass, field
 from operator import itemgetter
-from typing import List, Set
-
-import re
+from typing import Set
 
 
 @dataclass
