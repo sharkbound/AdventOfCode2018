@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from birdseye import eye
-
 FILE = 'data.txt'
 
 
@@ -44,7 +42,7 @@ def get_node_value(node):
                 value += get_node_value(node.children[i - 1])
 
         return value
-    
+
     return sum(node.metadata)
 
 
