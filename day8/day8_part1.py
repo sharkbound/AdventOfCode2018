@@ -19,8 +19,8 @@ class Node:
     def __init__(self, child_count, metadata_count):
         self.metadata_count = metadata_count
         self.child_count = child_count
-        self.children: List[Node] = []
-        self.metadata: List[int] = []
+        self.children = []
+        self.metadata = []
 
     def __repr__(self):
         return f'<Node children={self.children} metadata={self.metadata}>'
