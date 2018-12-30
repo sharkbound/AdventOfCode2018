@@ -8,5 +8,6 @@ os.mkdir(f'day{day}')
 open(f'{FOLDER}/{FOLDER}_part1.py', 'w').close()
 open(f'{FOLDER}/{FOLDER}_part2.py', 'w').close()
 open(f'{FOLDER}/data.txt', 'w').close()
+open(f'{FOLDER}/example.txt', 'w').close()
 
 print(f'created folder! {FOLDER}')
