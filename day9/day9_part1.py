@@ -7,23 +7,46 @@ examples:
 30 players; last marble is worth 5807 points: high score is 37305
 """
 
-from collections import namedtuple, deque
+from collections import namedtuple, deque, defaultdict
 from util import get_all_numbers
 
-
-def parse_game():
-    with open(FILE) as f:
-        return Game(*get_all_numbers(next(f))[:2])
-
-
-FILE = 'example.txt'
+FILE = 'data.txt'
 Game = namedtuple('Game', 'players final')
-game = parse_game()
+
+with open(FILE) as f:
+    game = Game(*get_all_numbers(next(f))[:2])
+
+
+def rotate_index(i, size):
+    if i > size:
+        i -= size
+    elif i < 0:
+        i += size
+    return i
 
 
 def solve():
     marbles = deque(range(game.final + 1))
     circle = [marbles.popleft()]
+    scores = defaultdict(int)
+    index = 0
+    player = 1
 
     while marbles:
-        pass
+        next_marble = marbles.popleft()
+
+        if next_marble % 23:
+            index = rotate_index(index + 2, len(circle))
+            circle.insert(index, next_marble)
+        else:
+            removed = circle[rotate_index(index - 7, len(circle))]
+            index = circle.index(removed)
+            circle.remove(removed)
+            scores[player] += next_marble + removed
+
+        player = max((player + 1) % (game.players + 1), 1)
+
+    print(max(scores.values()))
+
+
+solve()
