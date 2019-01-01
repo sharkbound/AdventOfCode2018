@@ -38,10 +38,12 @@ def solve():
         if next_marble % 23:
             index = rotate_index(index + 2, len(circle))
             circle.insert(index, next_marble)
+
         else:
-            removed = circle[rotate_index(index - 7, len(circle))]
-            index = circle.index(removed)
-            circle.remove(removed)
+            removed_index = rotate_index(index - 7, len(circle))
+            removed = circle[removed_index]
+            index = removed_index
+            del circle[index]
             scores[player] += next_marble + removed
 
         player = max((player + 1) % (game.players + 1), 1)
