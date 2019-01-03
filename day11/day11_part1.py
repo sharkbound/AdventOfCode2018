@@ -16,19 +16,19 @@ def power_level(x, y, serial):
 
 Tile = namedtuple('Tile', 'x y power')
 
-powers = []
+tiles = []
 grid = np.zeros((300, 300), dtype=int)
 
 for (y, x), _ in np.ndenumerate(grid):
     power = power_level(x, y, serial)
-    powers.append(Tile(x, y, power))
+    tiles.append(Tile(x, y, power))
     grid[y, x] = power
 
-powers.sort(key=attrgetter('power'), reverse=True)
+tiles.sort(key=attrgetter('power'), reverse=True)
 best_tile = Tile(0, 0, -1)
 best_total = 0
 
-for tile in powers:
+for tile in tiles:
     if tile.power <= 1:
         break
 
