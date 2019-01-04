@@ -1,6 +1,7 @@
 import numpy as np
 
 PLOT_GRID = True
+FILE = 'data.txt'
 
 WIDTH = 354
 HEIGHT = 359
@@ -29,7 +30,7 @@ def closest_point(point):
 seen_points = set()
 DEFAULT_POINT_ID = 0, 0, 0
 
-with open('data.txt') as f:
+with open(FILE) as f:
     points = [(*map(int, line.split(',')), i) for i, line in enumerate(f, 1)]
     non_infinite_points = set(id for _, _, id in points)
 
@@ -45,9 +46,6 @@ for i, _ in np.ndenumerate(grid):
 
     if closest_point_id and (not i[0] or i[0] == WIDTH - 1 or not i[1] or i[1] == HEIGHT - 1):
         non_infinite_points.discard(closest_point_id[2])
-        # print(f'discarding: {closest_point_id[2]}, '
-        #       f'W:{WIDTH - 1}, H:{HEIGHT - 1}, '
-        #       f'X: {i[0]}, Y: {i[1]}')
 
     grid[i] = (closest_point_id or DEFAULT_POINT_ID)[2]
 
