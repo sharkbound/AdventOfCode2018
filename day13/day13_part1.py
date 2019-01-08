@@ -1,5 +1,5 @@
 from collections import defaultdict
-from pprint import pprint
+from operator import itemgetter
 
 import numpy as np
 
@@ -85,14 +85,7 @@ for i, v in np.ndenumerate(grid):
         cart_id += 1
 
 while True:
-    location_to_id = {location: cart_id for cart_id, location in cart_locations.items()}
-    y_locations = {y for y, x in location_to_id}
-
-    for pos, v in np.ndenumerate(grid):
-        if pos not in location_to_id or pos[0] not in y_locations:
-            continue
-
-        cart_id = location_to_id[pos]
+    for cart_id, pos in sorted(cart_locations.items(), key=itemgetter(1)):
         vel = direction_to_velocity[cart_directions[cart_id]]
         new_pos = pos[0] + vel[0], pos[1] + vel[1]
         cart_locations[cart_id] = new_pos
