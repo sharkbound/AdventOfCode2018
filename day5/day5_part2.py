@@ -7,7 +7,7 @@ def read_data():
 
 
 # https://github.com/fogleman/AdventOfCode2018/blob/master/5.py
-# used that repo as a reference to optimize this, tried using a deque initially, that didnt work out though
+# used that repo as a reference to optimize this, tried using a deque initially, that didn't work out though
 def react(data):
     res = ['']
 
