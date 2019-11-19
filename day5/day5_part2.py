@@ -1,4 +1,4 @@
-from itertools import islice, filterfalse
+import re
 
 
 def read_data():
@@ -25,7 +25,7 @@ data = read_data()
 
 print(
     min(
-        len(react(data.replace(char.lower(), '').replace(char.upper(), '')))
+        len(react(re.sub(char, '', data, flags=re.I)))
         for char in set(data)
     )
 )
