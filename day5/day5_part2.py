@@ -1,28 +1,31 @@
-with open('data.txt') as f:
-    data = f.read()
+from itertools import islice, filterfalse
 
 
-def remove_negating_units(text):
-    inital_len = len(text)
-
-    for lower, upper in zip(lower_chars, upper_chars):
-        text = text.replace(upper + lower, '').replace(lower + upper, '')
-
-    return inital_len != len(text), text
+def read_data():
+    with open('data.txt') as f:
+        return f.read()
 
 
-min_len = len(data)
-lower_chars, upper_chars = sorted(set(data.lower())), sorted(set(data.upper()))
+# https://github.com/fogleman/AdventOfCode2018/blob/master/5.py
+# used that repo as a reference to optimize this, tried using a deque initially, that didnt work out though
+def react(data):
+    res = ['']
 
-for char in lower_chars:
-    datacopy = data.replace(char, '').replace(char.upper(), '')
+    for c in data:
+        if c == res[-1].swapcase():
+            res.pop()
+        else:
+            res.append(c)
 
-    while True:
-        changed, datacopy = remove_negating_units(datacopy)
+    # skip the empty placeholder string
+    return ''.join(filter(None, res))
 
-        if not changed:
-            break
 
-    min_len = min(len(datacopy), min_len)
+data = read_data()
 
-print(min_len)
+print(
+    min(
+        len(react(data.replace(char.lower(), '').replace(char.upper(), '')))
+        for char in set(data)
+    )
+)

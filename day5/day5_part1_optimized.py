@@ -2,27 +2,19 @@ from collections import deque
 
 
 # https://github.com/fogleman/AdventOfCode2018/blob/master/5.py
-# def solve_part_1():
-#     data = read_data()
-#     res = ['']
-#
-#     for c in data:
-#         if c == res[-1].swapcase():
-#             res.pop()
-#         else:
-#             res.append(c)
-#
-#     return len(res) - 1
-
+# i tried making a version that uses a deque, but never worked out
 def solve_part_1():
-    data = deque(read_data())
-    for _ in range(len(data)):
-        a, b = data.popleft(), data.popleft()
-        if a == b.swapcase():
-            continue
-        data.appendleft(b)
-        data.append(a)
-    return len(data)
+    data = read_data()
+    res = ['']
+
+    for c in data:
+        if c == res[-1].swapcase():
+            res.pop()
+        else:
+            res.append(c)
+
+    # skip the empty placeholder string
+    return ''.join(res[1:])
 
 
 def read_data():
@@ -31,7 +23,7 @@ def read_data():
 
 
 # solve_part_1()
-print('actual :', solve_part_1(), '\ncorrect:', 9386)
+print('actual :', len(solve_part_1()), '\ncorrect:', 9386)
 
 # def test_part_1_is_correct():
 #     ret = solve_part_1()
