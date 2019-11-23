@@ -1,13 +1,16 @@
-import os
+from pathlib import Path
 
-day = int(input('what day? '))
-FOLDER = f'day{day}'
 
-os.mkdir(f'day{day}')
+def create_files(base: Path, *files):
+    if not base.exists():
+        base.mkdir(parents=True)
 
-open(f'{FOLDER}/{FOLDER}_part1.py', 'w').close()
-open(f'{FOLDER}/{FOLDER}_part2.py', 'w').close()
-open(f'{FOLDER}/data.txt', 'w').close()
-open(f'{FOLDER}/example.txt', 'w').close()
+    for file in files:
+        if not (path := base / file).exists():
+            open(path, 'w').close()
 
-print(f'created folder! {FOLDER}')
+
+day = input("what day? ")
+day_folder = Path(f'day{day}')
+create_files(day_folder, f'day{day}_part1.py', f'day{day}_part2.py', 'data.txt', 'example.txt')
+print(f'created folder! {day_folder}')

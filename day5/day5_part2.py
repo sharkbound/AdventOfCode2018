@@ -1,4 +1,5 @@
 import re
+from collections import deque
 
 
 def read_data():
