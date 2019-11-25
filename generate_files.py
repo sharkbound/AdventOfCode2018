@@ -12,5 +12,5 @@ def create_files(base: Path, *files):
 
 day = input("what day? ")
 day_folder = Path(f'day{day}')
-create_files(day_folder, f'day{day}_part1.py', f'day{day}_part2.py', 'data.txt', 'example.txt')
+create_files(day_folder, f'day{day}_part1.py', f'day{day}_part2.py', 'data.txt', 'example.txt', 'notes.md')
 print(f'created folder! {day_folder}')
