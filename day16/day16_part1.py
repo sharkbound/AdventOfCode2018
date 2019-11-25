@@ -23,6 +23,10 @@ class Memory:
     def as_list(self):
         return self.registers.copy()
 
+    @property
+    def as_tuple(self):
+        return tuple(self.registers)
+
     def __eq__(self, other):
         return list(other) == self.as_list
 
@@ -32,18 +36,13 @@ class Memory:
 
 @dataclass
 class Instruction:
-    id: str
+    id: int
     a: int
     b: int
     c: int
 
-    @property
-    def is_instruction(self):
-        return self.id.isnumeric()
-
-    @property
-    def instruction(self):
-        return int(self.id)
+    def __iter__(self):
+        yield from (self.id, self.a, self.b, self.c)
 
     @property
     def input(self):
@@ -54,34 +53,70 @@ class Instruction:
         return self.c
 
 
-REG_A = 0
-REG_B = 1
-REG_C = 2
-REG_D = 3
+(
+    REG_A,
+    REG_B,
+    REG_C,
+    REG_D
+) = range(4)
 
-ADDI = 1
-SETI = 2
-MULI = 3
+(
+    ADDI,
+    SETI,
+    MULR
+) = range(3)
+
+RE_LINE_INSTRUCTION = re.compile('(\d) (\d) (\d) (\d)')
+RE_SAMPLE_INSTRUCTION = re.compile(r'\[(\d), (\d), (\d), (\d)\]')
 
 
+def parse_line_instruction(line):
+    if match := RE_LINE_INSTRUCTION.match(line):
+        return Instruction(*map(int, match.groups()))
+
+
+def parse_sample_instruction(line):
+    if match := RE_SAMPLE_INSTRUCTION.search(line):
+        return Instruction(*map(int, match.groups()))
+
+
+# noinspection PyUnboundLocalVariable
 def solve_part_1():
     possiblies = defaultdict(set)
     memory = Memory()
     before = after = False
 
     for line in read_lines():
-        if 'After' in line:
+        is_after = 'After' in line
+        is_before = 'Before' in line
+        is_sample = is_before or is_after
+
+        if is_after:
             after = True
             before = False
-        elif 'Before' in line:
+        elif is_before:
             before = True
             after = False
         elif after and line.replace(' ', '').isnumeric():
             before = False
             after = False
 
-        if before or after:
-            print(before, after, line)
+        if is_before or is_after:
+            instruction = parse_sample_instruction(line)
+        else:
+            instruction = parse_line_instruction(line)
+
+        if is_before:
+            memory.override(*instruction)
+        elif is_after:
+            expected = tuple(map(int, RE_SAMPLE_INSTRUCTION.search(line).groups()))
+            assert memory.as_tuple == expected, f'\nexpected memory to be {expected}\nit was actually {memory.as_tuple}\nthe line was {line!r}'
+        elif is_sample:
+            pass
+
+    # if match := RE_INSTRUCTION.match(line):
+    #     instruction = Instruction(*map(int, match.groups()))
+    #     print(instruction)
 
 
 print(solve_part_1())

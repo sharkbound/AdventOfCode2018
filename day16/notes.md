@@ -10,7 +10,7 @@ Ignoring the opcode numbers, how many samples in your puzzle input behave like t
 9 2 1 2
 
 * possibilies:
-    * MULR - B=2 *  
+    * MULR - B=2 * C=1 == 2 
     
 means that opcode 9 was executed with A=2, B=1, and C=2. Opcode 9 could be any of the 16 opcodes listed above, but only three of them behave in a way that would cause the result shown in the sample:
 
