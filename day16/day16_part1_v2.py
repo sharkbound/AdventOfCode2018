@@ -41,7 +41,7 @@ class Memory:
         return list(other) == self.registers
 
     def __repr__(self):
-        return repr(self.as_list)
+        return f'<Memory {self.registers!r}>'
 
 
 @dataclass
@@ -82,130 +82,47 @@ def extract_numbers(line):
     return tuple(map(int, RE_INSTRUCTION.search(line).groups()))
 
 
-ADDI = 'addi'
-ADDR = 'addr'
+operations = []
 
-MULI = 'muli'
-MULR = 'mulr'
 
-BANI = 'bani'
-BANR = 'banr'
+def register(id, func):
+    operations.append((id, func))
+    return id, func
 
-BORI = 'bori'
-BORR = 'borr'
 
-SETR = 'setr'
-SETI = 'seti'
-
-GTIR = 'gtir'
-GTRI = 'gtri'
-GTRR = 'gtrr'
-
-EQIR = 'eqir'
-EQRI = 'eqri'
-EQRR = 'eqrr'
+ADDR, addr = register('ADDR', lambda mem, i: mem[i.a] + mem[i.b])
+ADDI, addi = register('ADDI', lambda mem, i: mem[i.a] + i.b)
+MULR, mulr = register('MULR', lambda mem, i: mem[i.a] * mem[i.b])
+MULI, muli = register('MULI', lambda mem, i: mem[i.a] * i.b)
+BANR, banr = register('BANR', lambda mem, i: mem[i.a] & mem[i.b])
+BANI, bani = register('BANI', lambda mem, i: mem[i.a] & i.b)
+BORR, borr = register('BORR', lambda mem, i: mem[i.a] | mem[i.b])
+BORI, bori = register('BORI', lambda mem, i: mem[i.a] | i.b)
+SETR, setr = register('SETR', lambda mem, i: mem[i.a])
+SETI, seti = register('SETI', lambda _, i: i.a)
+GTIR, gtir = register('GTIR', lambda mem, i: int(i.a > mem[i.b]))
+GTRI, gtri = register('GTRI', lambda mem, i: int(mem[i.a] > i.b))
+GTRR, gtrr = register('GTRR', lambda mem, i: int(mem[i.a] > mem[i.b]))
+EQRI, eqri = register('EQRI', lambda mem, i: int(i.a == mem[i.b]))
+EQIR, eqir = register('EQIR', lambda mem, i: int(mem[i.a] == i.b))
+EQRR, eqrr = register('EQRR', lambda mem, i: int(mem[i.a] == mem[i.b]))
 
 
 def check_all(instruction: Instruction, memory: Memory, expected: tuple, setup: tuple,
               possibilities: DefaultDict[int, Set[str]]):
     opcode = instruction.op
-    mem_temp = partial(memory.temp, setup)
     count = 0
-
-    def check(id):
-        nonlocal count
-        if memory == expected:
-            possibilities[opcode].add(id)
-            count += 1
-
-    # region operations
-
-    # MULR
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] * memory[instruction.b]
-        check(MULR)
-
-    # MULI
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] * instruction.b
-        check(MULI)
-
-    # ADDR
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] + memory[instruction.b]
-        check(ADDR)
-
-    # ADDI
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] + instruction.b
-        check(ADDR)
-
-    # BANR - binary AND
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] & memory[instruction.b]
-        check(BANR)
-
-    # BANI - binary AND
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] & instruction.b
-        check(BANI)
-
-    # BORR - binary OR
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] | memory[instruction.b]
-        check(BORR)
-
-    # BORI - binary OR
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a] | instruction.b
-        check(BORI)
-
-    # SETI
-    with mem_temp():
-        memory[instruction.c] = instruction.a
-        check(SETI)
-
-    # SETR
-    with mem_temp():
-        memory[instruction.c] = memory[instruction.a]
-        check(SETR)
-
-    # GTIR
-    with mem_temp():
-        memory[instruction.c] = int(instruction.a > memory[instruction.b])
-        check(GTIR)
-
-    # GTRI
-    with mem_temp():
-        memory[instruction.c] = int(memory[instruction.a] > instruction.b)
-        check(GTRI)
-
-    # GTRR
-    with mem_temp():
-        memory[instruction.c] = int(memory[instruction.a] > memory[instruction.b])
-        check(GTRR)
-
-    # EQIR
-    with mem_temp():
-        memory[instruction.c] = int(instruction.a == memory[instruction.b])
-        check(EQIR)
-
-    # EQRI
-    with mem_temp():
-        memory[instruction.c] = int(memory[instruction.a] == instruction.b)
-        check(EQRI)
-
-    # EQRR
-    with mem_temp():
-        memory[instruction.c] = int(memory[instruction.a] == memory[instruction.b])
-        check(EQRR)
-
-    # endregion
+    for id, oper in operations:
+        with memory.temp(setup):
+            memory[instruction.c] = oper(memory, instruction)
+            if memory == expected:
+                possibilities[opcode].add(id)
+                count += 1
     return count
 
 
 # noinspection PyUnboundLocalVariable
-def solve_part_2():
+def solve_part_1():
     possibilities = defaultdict(set)
     memory = Memory()
     before = after = False
@@ -241,4 +158,4 @@ def solve_part_2():
     return count
 
 
-pprint(solve_part_2())
+pprint(solve_part_1())

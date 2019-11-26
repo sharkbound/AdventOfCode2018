@@ -1,7 +1,10 @@
 import re
 from collections import defaultdict
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import NamedTuple
+from functools import partial
+from pprint import pprint
+from typing import NamedTuple, DefaultDict, Set
 
 from read import read_lines
 
@@ -19,6 +22,13 @@ class Memory:
     def override(self, a, b, c, d):
         self[:] = a, b, c, d
 
+    @contextmanager
+    def temp(self, setup: tuple):
+        prev_state = self.as_tuple
+        self.override(*setup)
+        yield
+        self.override(*prev_state)
+
     @property
     def as_list(self):
         return self.registers.copy()
@@ -28,7 +38,7 @@ class Memory:
         return tuple(self.registers)
 
     def __eq__(self, other):
-        return list(other) == self.as_list
+        return list(other) == self.registers
 
     def __repr__(self):
         return repr(self.as_list)
@@ -36,13 +46,13 @@ class Memory:
 
 @dataclass
 class Instruction:
-    id: int
+    op: int
     a: int
     b: int
     c: int
 
     def __iter__(self):
-        yield from (self.id, self.a, self.b, self.c)
+        yield from (self.op, self.a, self.b, self.c)
 
     @property
     def input(self):
@@ -60,36 +70,153 @@ class Instruction:
     REG_D
 ) = range(4)
 
-(
-    ADDI,
-    SETI,
-    MULR
-) = range(3)
-
-RE_LINE_INSTRUCTION = re.compile('(\d) (\d) (\d) (\d)')
-RE_SAMPLE_INSTRUCTION = re.compile(r'\[(\d), (\d), (\d), (\d)\]')
+RE_INSTRUCTION = re.compile('(\d+),? (\d+),? (\d+),? (\d+)')
 
 
-def parse_line_instruction(line):
-    if match := RE_LINE_INSTRUCTION.match(line):
+def find_instruction(line):
+    if match := RE_INSTRUCTION.search(line):
         return Instruction(*map(int, match.groups()))
 
 
-def parse_sample_instruction(line):
-    if match := RE_SAMPLE_INSTRUCTION.search(line):
-        return Instruction(*map(int, match.groups()))
+def extract_numbers(line):
+    return tuple(map(int, RE_INSTRUCTION.search(line).groups()))
+
+
+ADDI = 'addi'
+ADDR = 'addr'
+
+MULI = 'muli'
+MULR = 'mulr'
+
+BANI = 'bani'
+BANR = 'banr'
+
+BORI = 'bori'
+BORR = 'borr'
+
+SETR = 'setr'
+SETI = 'seti'
+
+GTIR = 'gtir'
+GTRI = 'gtri'
+GTRR = 'gtrr'
+
+EQIR = 'eqir'
+EQRI = 'eqri'
+EQRR = 'eqrr'
+
+
+def check_all(instruction: Instruction, memory: Memory, expected: tuple, setup: tuple,
+              possibilities: DefaultDict[int, Set[str]]):
+    opcode = instruction.op
+    mem_temp = partial(memory.temp, setup)
+    count = 0
+
+    def check(id):
+        nonlocal count
+        if memory == expected:
+            possibilities[opcode].add(id)
+            count += 1
+
+    # region operations
+
+    # MULR
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] * memory[instruction.b]
+        check(MULR)
+
+    # MULI
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] * instruction.b
+        check(MULI)
+
+    # ADDR
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] + memory[instruction.b]
+        check(ADDR)
+
+    # ADDI
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] + instruction.b
+        check(ADDR)
+
+    # BANR - binary AND
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] & memory[instruction.b]
+        check(BANR)
+
+    # BANI - binary AND
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] & instruction.b
+        check(BANI)
+
+    # BORR - binary OR
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] | memory[instruction.b]
+        check(BORR)
+
+    # BORI - binary OR
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a] | instruction.b
+        check(BORI)
+
+    # SETI
+    with mem_temp():
+        memory[instruction.c] = instruction.a
+        check(SETI)
+
+    # SETR
+    with mem_temp():
+        memory[instruction.c] = memory[instruction.a]
+        check(SETR)
+
+    # GTIR
+    with mem_temp():
+        memory[instruction.c] = int(instruction.a > memory[instruction.b])
+        check(GTIR)
+
+    # GTRI
+    with mem_temp():
+        memory[instruction.c] = int(memory[instruction.a] > instruction.b)
+        check(GTRI)
+
+    # GTRR
+    with mem_temp():
+        memory[instruction.c] = int(memory[instruction.a] > memory[instruction.b])
+        check(GTRR)
+
+    # EQIR
+    with mem_temp():
+        memory[instruction.c] = int(instruction.a == memory[instruction.b])
+        check(EQIR)
+
+    # EQRI
+    with mem_temp():
+        memory[instruction.c] = int(memory[instruction.a] == instruction.b)
+        check(EQRI)
+
+    # EQRR
+    with mem_temp():
+        memory[instruction.c] = int(memory[instruction.a] == memory[instruction.b])
+        check(EQRR)
+
+    # endregion
+    return count
 
 
 # noinspection PyUnboundLocalVariable
 def solve_part_1():
-    possiblies = defaultdict(set)
+    possibilities = defaultdict(set)
     memory = Memory()
     before = after = False
+    sample_instruction: Instruction = None
+    sample_before_regs: tuple = None
+    count = 0
 
     for line in read_lines():
         is_after = 'After' in line
         is_before = 'Before' in line
-        is_sample = is_before or is_after
+        is_sample = before or after or is_before or is_after
 
         if is_after:
             after = True
@@ -101,22 +228,17 @@ def solve_part_1():
             before = False
             after = False
 
-        if is_before or is_after:
-            instruction = parse_sample_instruction(line)
-        else:
-            instruction = parse_line_instruction(line)
+        instruction = find_instruction(line)
 
         if is_before:
-            memory.override(*instruction)
+            sample_before_regs = tuple(instruction)
         elif is_after:
-            expected = tuple(map(int, RE_SAMPLE_INSTRUCTION.search(line).groups()))
-            assert memory.as_tuple == expected, f'\nexpected memory to be {expected}\nit was actually {memory.as_tuple}\nthe line was {line!r}'
+            expected = extract_numbers(line)
+            count += check_all(sample_instruction, memory, expected, sample_before_regs, possibilities) >= 3
         elif is_sample:
-            pass
+            sample_instruction = instruction
 
-    # if match := RE_INSTRUCTION.match(line):
-    #     instruction = Instruction(*map(int, match.groups()))
-    #     print(instruction)
+    return count
 
 
-print(solve_part_1())
+pprint(solve_part_1())
