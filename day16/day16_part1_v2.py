@@ -150,8 +150,8 @@ def solve_part_1():
         if is_before:
             sample_before_regs = tuple(instruction)
         elif is_after:
-            expected = extract_numbers(line)
-            count += check_all(sample_instruction, memory, expected, sample_before_regs, possibilities) >= 3
+            count += check_all(sample_instruction, memory, extract_numbers(line), sample_before_regs,
+                               possibilities) >= 3
         elif is_sample:
             sample_instruction = instruction
 
